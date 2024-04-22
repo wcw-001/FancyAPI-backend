@@ -1,1 +1,1 @@
-# FancydogAPI
+# FancyAPI
