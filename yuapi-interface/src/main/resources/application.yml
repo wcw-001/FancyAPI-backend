@@ -1,0 +1,8 @@
+server:
+  port: 8123
+  servlet:
+    context-path: /api
+wapi:
+  client:
+    access-key: wcw
+    secret-key: abcdef

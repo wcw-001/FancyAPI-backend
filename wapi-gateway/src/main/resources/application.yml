@@ -1,0 +1,30 @@
+server:
+  port: 8090
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: api_route
+        uri: http://localhost:8123
+        predicates:
+          - Path=/api/**
+  main:
+    web-application-type: reactive
+
+logging:
+  level:
+    org:
+      springframework:
+        cloud:
+          gateway: trace
+
+# application.yml (Spring Boot)
+dubbo:
+  application:
+    name: dubbo-shierApi-backend-provider
+  protocol:
+    name: dubbo
+    port: -1
+  registry:
+    id: nacos-registry
+    address: nacos://localhost:8848

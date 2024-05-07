@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="MavenProjectsManager">
+    <option name="originalFiles">
+      <list>
+        <option value="$PROJECT_DIR$/wapi-common/pom.xml" />
+        <option value="$PROJECT_DIR$/wapi-gateway/pom.xml" />
+        <option value="$PROJECT_DIR$/yuapi-backend/yuapi-backend/pom.xml" />
+        <option value="$PROJECT_DIR$/yuapi-backend/wapi-client-sdk/pom.xml" />
+        <option value="$PROJECT_DIR$/yuapi-interface/pom.xml" />
+        <option value="$PROJECT_DIR$/yuapi-backend/pom.xml" />
+        <option value="$PROJECT_DIR$/wapi-client-sdk/pom.xml" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" default="true" project-jdk-name="1.8" project-jdk-type="JavaSDK" />
+</project>

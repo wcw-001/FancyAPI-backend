@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="yuapi-interface" />
+        <module name="wapi-common" />
+        <module name="wapi-backend" />
+        <module name="wapi-client-sdk" />
+        <module name="wapi-gateway" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="wapi-backend" target="1.8" />
+      <module name="wapi-client-sdk" target="1.8" />
+      <module name="wapi-common" target="1.8" />
+      <module name="wapi-gateway" target="1.8" />
+      <module name="yuapi-interface" target="1.8" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="wapi-backend" options="-parameters" />
+      <module name="wapi-client-sdk" options="-parameters" />
+      <module name="wapi-common" options="-parameters" />
+      <module name="yuapi-interface" options="-parameters" />
+    </option>
+  </component>
+</project>

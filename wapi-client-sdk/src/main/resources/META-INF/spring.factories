@@ -1,0 +1,2 @@
+#spring boot stater
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=com.wcw.wapiclientsdk.WapiClientConfig
