@@ -1,9 +1,15 @@
 package com.yupi.project.controller;
 
+import cn.hutool.core.util.ObjUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import com.wcw.wapiclientsdk.client.WapiClient;
+import com.wcw.wapiclientsdk.model.dto.BaseRequest;
 import com.yupi.project.annotation.AuthCheck;
 import com.yupi.project.common.*;
 import com.yupi.project.constant.CommonConstant;
@@ -21,7 +27,11 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 接口
@@ -263,41 +273,9 @@ public class InterfaceInfoController {
      * @param request
      * @return
      */
-    @PostMapping("/invoke")
-    public BaseResponse<Object> invokeInterfaceInfo(@RequestBody InterfaceInfoInvokeRequest interfaceInfoInvokeRequest,
-                                                      HttpServletRequest request) {
-        if(interfaceInfoInvokeRequest == null || interfaceInfoInvokeRequest.getId() <= 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        long id = interfaceInfoInvokeRequest.getId();
-        String params = interfaceInfoInvokeRequest.getUserRequestParams();
-        // 判断是否存在
-        InterfaceInfo oldInterfaceInfo = interfaceInfoService.getById(id);
-        if (oldInterfaceInfo == null) {
-            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
-        }
-        if(oldInterfaceInfo.getStatus() != InterfaceInfoEnum.FEMALE.getValue()){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR,"接口已关闭");
-        }
-        User loginUser = userService.getLoginUser(request);
-        String accessKey = loginUser.getAccessKey();
-        String secretKey = loginUser.getSecretKey();
-        WapiClient wapiClient = new WapiClient(accessKey,secretKey);
-        Gson gson = new Gson();
-        com.wcw.wapiclientsdk.model.User user = gson.fromJson(params, com.wcw.wapiclientsdk.model.User.class);
-        String userNameByPost = wapiClient.getNameByPost(user);
-        return ResultUtils.success(userNameByPost);
-    }
-    /**
-     * 调用接口
-     *
-     * @param interfaceInfoInvokeRequest
-     * @param request
-     * @return
-     */
-//    @PostMapping("/invoke1")
-//    public BaseResponse<InvokeRequest> invokeInterfaceInfoByReal(@RequestBody InterfaceInfoInvokeRequest interfaceInfoInvokeRequest,
-//                                                                 HttpServletRequest request) {
+//    @PostMapping("/invoke")
+//    public BaseResponse<Object> invokeInterfaceInfo(@RequestBody InterfaceInfoInvokeRequest interfaceInfoInvokeRequest,
+//                                                      HttpServletRequest request) {
 //        if(interfaceInfoInvokeRequest == null || interfaceInfoInvokeRequest.getId() <= 0) {
 //            throw new BusinessException(ErrorCode.PARAMS_ERROR);
 //        }
@@ -320,5 +298,59 @@ public class InterfaceInfoController {
 //        String userNameByPost = wapiClient.getNameByPost(user);
 //        return ResultUtils.success(userNameByPost);
 //    }
+
+    /**
+     * 调用接口
+     *
+     * @param interfaceInfoInvokeRequest
+     * @param request
+     * @return
+     */
+    @PostMapping("/invoke")
+    public BaseResponse<Object> invokeInterfaceInfo(@RequestBody InterfaceInfoInvokeRequest interfaceInfoInvokeRequest,
+                                                                 HttpServletRequest request) {
+        if(interfaceInfoInvokeRequest == null || interfaceInfoInvokeRequest.getId() <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        long id = interfaceInfoInvokeRequest.getId();
+        // 判断是否存在
+        InterfaceInfo oldInterfaceInfo = interfaceInfoService.getById(id);
+        if (oldInterfaceInfo == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        if(oldInterfaceInfo.getStatus() != InterfaceInfoEnum.FEMALE.getValue()){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"接口已关闭");
+        }
+        User loginUser = userService.getLoginUser(request);
+        String accessKey = loginUser.getAccessKey();
+        String secretKey = loginUser.getSecretKey();
+        WapiClient wapiClient = new WapiClient(accessKey,secretKey);
+        URL url = null;
+        try {
+            url = new URL(oldInterfaceInfo.getUrl());
+        } catch (MalformedURLException e) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "无效的地址转换");
+        }
+        String params = interfaceInfoInvokeRequest.getUserRequestParams();
+        String path = url.getPath();
+        BaseRequest baseRequest = new BaseRequest();
+        baseRequest.setPath(path);
+        baseRequest.setMethod(oldInterfaceInfo.getMethod());
+        baseRequest.setRequestParams(params);
+        baseRequest.setUserRequest(request);
+        Object result = null;
+        try {
+            // 调用sdk解析地址方法
+            result = wapiClient.parseAddressAndCallInterface(baseRequest);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (ObjUtil.isEmpty(request)) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "请求SDK失败");
+        }
+        log.info("调用api接口返回结果：" + result);
+        // 重构用户缓存
+        return ResultUtils.success(result);
+    }
 
 }

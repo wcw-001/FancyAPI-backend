@@ -51,7 +51,6 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-
         //1.请求日志
         ServerHttpRequest request = exchange.getRequest();
         String path = INTERFACE_HOST + request.getPath().value();
@@ -120,7 +119,7 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
         if (interfaceInfo == null) {
             return handeNoAuth(response);
         }
-        //todo 是否有调用次数
+        //1.todo 是否有调用次数
         //5.请求转发，调用模拟接口
         //Mono<Void> filter = chain.filter(exchange);
         //6.响应日志

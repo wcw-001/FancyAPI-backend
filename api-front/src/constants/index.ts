@@ -6,9 +6,9 @@ export const SYSTEM_LOGO = "https://pic.imgdb.cn/item/65e0254b9f345e8d036d1fcf.j
 /**
  * Github 个人主页链接
  */
-export const GITHUB_LINK = "https://github.com/lvxinxinL/leapi-backend"
+export const GITHUB_LINK = "https://github.com/wcw-001/FancyAPI-backend"
 
-export const LEAPI_CLIENT_SDK = "https://github.com/lvxinxinL/leapi-client-sdk"
+export const LEAPI_CLIENT_SDK = "https://github.com/wcw-001/FancyAPI-backend/tree/master/wapi-client-sdk"
 
 /**
  * CSDN 个人博客链接

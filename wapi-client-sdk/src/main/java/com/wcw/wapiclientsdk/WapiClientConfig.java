@@ -18,5 +18,4 @@ public class WapiClientConfig {
     public WapiClient wapiClient(){
         return new WapiClient(accessKey,secretKey);
     }
-
 }

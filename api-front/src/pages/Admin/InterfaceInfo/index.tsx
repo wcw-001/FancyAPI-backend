@@ -16,6 +16,7 @@ import {
 import {SortOrder} from "antd/lib/table/interface";
 import CreateModal from "@/pages/Admin/InterfaceInfo/components/CreateModal";
 import UpdateModal from "@/pages/Admin/InterfaceInfo/components/UpdateModal";
+import ShowModal from "@/pages/Admin/InterfaceInfo/components/ShowModal";
 
 
 
@@ -200,14 +201,14 @@ const TableList: React.FC = () => {
       dataIndex: 'requestParams',
       valueType: 'jsonCode',
       colSize: 1,
-      //hideInTable: true,
+      hideInTable: true,
       hideInSearch: true,
     },
     {
       title: '请求头',
       dataIndex: 'requestHeader',
       valueType: 'jsonCode',
-     // hideInTable: true,
+      hideInTable: true,
       hideInSearch: true,
     },
     {
@@ -236,6 +237,15 @@ const TableList: React.FC = () => {
             <Button
               key="update"
               onClick={() => {
+                handleShowModalOpen(true);
+                setCurrentRow(record);
+              }}
+            >
+              详情
+            </Button>,
+            <Button
+              key="update"
+              onClick={() => {
                 handleUpdateModalOpen(true);
                 setCurrentRow(record);
               }}
@@ -261,6 +271,15 @@ const TableList: React.FC = () => {
             </Button>,
           ]
           : [
+            <Button
+              key="update"
+              onClick={() => {
+                handleShowModalOpen(true);
+                setCurrentRow(record);
+              }}
+            >
+              详情
+            </Button>,
             <Button
               key="update"
               onClick={() => {
@@ -404,6 +423,17 @@ const TableList: React.FC = () => {
         visible={updateModalOpen}
         values={currentRow || {}}
 
+      />
+      <ShowModal
+        columns={columns}
+        onCancel={() => {
+          handleShowModalOpen(false);
+          if (!showDetail) {
+            setCurrentRow(undefined);
+          }
+        }}
+        visible={showModalOpen}
+        values={currentRow || {}}
       />
 
       <Drawer

@@ -111,6 +111,11 @@ declare namespace API {
     id?: number;
   };
 
+  type Field = {
+    fieldName?: string;
+    value?: string;
+  };
+
   type getInterfaceInfoByIdUsingGETParams = {
     /** id */
     id?: number;
@@ -161,8 +166,9 @@ declare namespace API {
     url?: string;
   };
 
-  type InterfaceInfoInvokeRequest = {
+  type InterfaceInfoInvokeRequest1 = {
     id?: number;
+    requestParams?: Field[];
     userRequestParams?: string;
   };
 
@@ -574,16 +580,16 @@ declare namespace API {
   };
 
   type UserVO = {
+    accessKey?: string;
     createTime?: string;
     gender?: number;
     id?: number;
+    secretKey?: string;
     updateTime?: string;
     userAccount?: string;
     userAvatar?: string;
     userName?: string;
     userRole?: string;
-    accessKey?: string;
-    secretKey?: string;
   };
 
   type View = {

@@ -19,6 +19,7 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/analysis")
@@ -30,31 +31,29 @@ public class AnalysisController {
     @GetMapping("/top/interfaceInfo/invoke")
     @AuthCheck(mustRole = "admin")
     public BaseResponse<List<InterfaceInfoVO>> listTopInvokeInterfaceInfo(){
-        List<InterfaceInfoVO> InterfaceInfoList = userInterfaceInfoMapper.listTopInvokeInterfaceInfo(3);
-        LinkedHashMap<Long, InterfaceInfoVO> voHashMap = new LinkedHashMap<>(InterfaceInfoList.size());
-        for (InterfaceInfoVO userInterfaceInfoVO : InterfaceInfoList ){
+        List<InterfaceInfoVO> interfaceInfoList = userInterfaceInfoMapper.listTopInvokeInterfaceInfo(3);
+        if(CollectionUtils.isEmpty(interfaceInfoList)){
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR);
+        }
+        LinkedHashMap<Long, InterfaceInfoVO> voHashMap = new LinkedHashMap<>(interfaceInfoList.size());
+        for (InterfaceInfoVO userInterfaceInfoVO : interfaceInfoList ){
             voHashMap.put(userInterfaceInfoVO.getId(),userInterfaceInfoVO);
         }
         QueryWrapper<InterfaceInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.in("id",voHashMap.keySet());
+        queryWrapper.eq("status",1);
         List<InterfaceInfo> list = interfaceInfoService.list(queryWrapper);
-        if(CollectionUtils.isEmpty(list)){
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR);
-        }
-        InterfaceInfoVO interfaceInfoVO = new InterfaceInfoVO();
-
-        for (InterfaceInfo interfaceInfo : list){
-            BeanUtils.copyProperties(interfaceInfo,voHashMap.get(interfaceInfo.getId()));
-        }
-
-//        List<InterfaceInfoVO> collect = list.stream().map(interfaceInfo -> {
-//            InterfaceInfoVO interfaceInfoVO = new InterfaceInfoVO();
-//            BeanUtils.copyProperties(interfaceInfo, interfaceInfoVO);
-//            int totalNum = interfaceInfoIdObjMap.get(interfaceInfo.getId()).get(0).getTotalNum();
-//            interfaceInfoVO.setTotalNum(totalNum);
-//            return interfaceInfoVO;
-//        }).collect(Collectors.toList());
-        List<InterfaceInfoVO> interfaceInfoVOS = new ArrayList<>(voHashMap.values());
+        InterfaceInfoVO interfaceVO = new InterfaceInfoVO();
+        List<InterfaceInfoVO> interfaceInfoVOS = new ArrayList<>();
+        voHashMap.values().forEach(interfaceInfoVO -> {
+            for(InterfaceInfo interfaceInfo : list){
+                if(interfaceInfo.getId().equals(interfaceInfoVO.getId())){
+                    BeanUtils.copyProperties(interfaceInfo,interfaceVO);
+                    interfaceVO.setTotalNum(interfaceInfoVO.getTotalNum());
+                    interfaceInfoVOS.add(interfaceVO);
+                }
+            }
+        });
         return ResultUtils.success(interfaceInfoVOS);
     }
 }
