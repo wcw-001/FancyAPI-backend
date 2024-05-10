@@ -1,7 +1,5 @@
 package com.wcw.wapiclientsdk.client;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
@@ -10,7 +8,6 @@ import cn.hutool.json.JSONUtil;
 import com.google.gson.Gson;
 import com.wcw.wapiclientsdk.model.User;
 import com.wcw.wapiclientsdk.model.dto.BaseRequest;
-import com.wcw.wapiclientsdk.model.params.JokeParams;
 import com.wcw.wapiclientsdk.utils.SignUtils;
 import com.wcw.wapiclientsdk.utils.UrlToMethodStatusEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -18,8 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.springframework.util.ReflectionUtils.invokeMethod;
 
 /**
  * 调用第三方接口的客户端
@@ -31,6 +26,7 @@ public class WapiClient {
     private static final  String GATEWAY_HOST = "http://localhost:8090";
     private String accessKey;
     private String secretKey;
+    private static final String EXTRA_BODY = "userInfoFancyAPI";
 
     public WapiClient(String accessKey, String secretKey) {
         this.accessKey = accessKey;
@@ -77,7 +73,11 @@ public class WapiClient {
         return result;
     }
     public String getJoke(){
-        return HttpUtil.get(GATEWAY_HOST+"/api/user/joke");
+        HttpResponse httpResponse = HttpRequest.get(GATEWAY_HOST + "/api/name/joke")
+                .addHeaders(getHeaderMap(EXTRA_BODY))
+                .body(EXTRA_BODY)
+                .execute();
+        return httpResponse.body();
     }
     public Object parseAddressAndCallInterface(BaseRequest baseRequest) throws Exception {
         String params = baseRequest.getRequestParams();
@@ -90,7 +90,7 @@ public class WapiClient {
                 User requestParams = gson.fromJson(params, User.class);
                 return invokeMethod(UrlToMethodStatusEnum.NAME.getMethod(), requestParams, User.class);
             case JOKE:
-                return invokeMethod(UrlToMethodStatusEnum.JOKE.getMethod(), params, JokeParams.class);
+                return invokeMethod(UrlToMethodStatusEnum.JOKE.getMethod());
             default:
                 return null;
         }

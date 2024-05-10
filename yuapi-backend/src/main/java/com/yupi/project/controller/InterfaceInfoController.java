@@ -212,6 +212,40 @@ public class InterfaceInfoController {
      * @param request
      * @return
      */
+//    @PostMapping("/online")
+//    @AuthCheck(mustRole = "admin")
+//    public BaseResponse<Boolean> onlineInterfaceInfo(@RequestBody IdRequest idRequest,
+//                                                     HttpServletRequest request) {
+//        if (idRequest == null || idRequest.getId() <= 0) {
+//            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+//        }
+//        long id = idRequest.getId();
+//        // 判断是否存在
+//        InterfaceInfo oldInterfaceInfo = interfaceInfoService.getById(id);
+//        if (oldInterfaceInfo == null) {
+//            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+//        }
+//        //判断该接口是否可以调用
+//        com.wcw.wapiclientsdk.model.User user = new com.wcw.wapiclientsdk.model.User();
+//        user.setName("test");
+//        String username = wapiClient.getNameByPost(user);
+//        if(StringUtils.isBlank(username)){
+//            throw new BusinessException(ErrorCode.SYSTEM_ERROR,"接口验证失败");
+//        }
+//        //仅管理员或者本人可以修改
+//        InterfaceInfo interfaceInfo = new InterfaceInfo();
+//        interfaceInfo.setId(id);
+//        interfaceInfo.setStatus(InterfaceInfoEnum.FEMALE.getValue());
+//        boolean result = interfaceInfoService.updateById(interfaceInfo);
+//        return ResultUtils.success(result);
+//    }
+    /**
+     * 上线接口
+     *
+     * @param idRequest
+     * @param request
+     * @return
+     */
     @PostMapping("/online")
     @AuthCheck(mustRole = "admin")
     public BaseResponse<Boolean> onlineInterfaceInfo(@RequestBody IdRequest idRequest,
@@ -226,12 +260,30 @@ public class InterfaceInfoController {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
         //判断该接口是否可以调用
-        com.wcw.wapiclientsdk.model.User user = new com.wcw.wapiclientsdk.model.User();
-        user.setName("test");
-        String username = wapiClient.getNameByPost(user);
-        if(StringUtils.isBlank(username)){
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR,"接口验证失败");
+        URL url = null;
+        try {
+            url = new URL(oldInterfaceInfo.getUrl());
+        } catch (MalformedURLException e) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "无效的地址转换");
         }
+        String params = null;
+        String path = url.getPath();
+        BaseRequest baseRequest = new BaseRequest();
+        baseRequest.setPath(path);
+        baseRequest.setMethod(oldInterfaceInfo.getMethod());
+        baseRequest.setRequestParams(params);
+        baseRequest.setUserRequest(request);
+        Object clientResult = null;
+        try {
+            // 调用sdk解析地址方法
+            clientResult = wapiClient.parseAddressAndCallInterface(baseRequest);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (ObjUtil.isEmpty(request)) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "请求SDK失败");
+        }
+        log.info("调用api接口返回结果：" + clientResult);
         //仅管理员或者本人可以修改
         InterfaceInfo interfaceInfo = new InterfaceInfo();
         interfaceInfo.setId(id);

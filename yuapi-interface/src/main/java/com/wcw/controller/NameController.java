@@ -5,11 +5,8 @@ import com.wcw.wapiclientsdk.utils.SignUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 
-import static org.springframework.boot.system.SystemProperties.get;
+import static com.wcw.utils.RequestUtil.get;
 
 /**
  * 名称api

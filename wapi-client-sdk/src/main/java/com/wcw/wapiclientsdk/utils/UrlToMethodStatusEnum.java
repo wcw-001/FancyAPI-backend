@@ -4,7 +4,7 @@ import java.lang.reflect.Method;
 
 public enum UrlToMethodStatusEnum {
     NAME("/api/name/user","getNameByPost"),
-    JOKE("/api/user/joke","getJoke");
+    JOKE("/api/name/joke","getJoke");
 
     private String path;
     private String method;
