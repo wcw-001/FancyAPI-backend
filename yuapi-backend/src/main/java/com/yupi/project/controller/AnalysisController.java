@@ -1,5 +1,6 @@
 package com.yupi.project.controller;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.yupi.project.annotation.AuthCheck;
@@ -48,9 +49,9 @@ public class AnalysisController {
         voHashMap.values().forEach(interfaceInfoVO -> {
             for(InterfaceInfo interfaceInfo : list){
                 if(interfaceInfo.getId().equals(interfaceInfoVO.getId())){
-                    BeanUtils.copyProperties(interfaceInfo,interfaceVO);
-                    interfaceVO.setTotalNum(interfaceInfoVO.getTotalNum());
-                    interfaceInfoVOS.add(interfaceVO);
+                    InterfaceInfoVO interfaceInfoResult = BeanUtil.copyProperties(interfaceInfo, InterfaceInfoVO.class);
+                    interfaceInfoResult.setTotalNum(interfaceInfoVO.getTotalNum());
+                    interfaceInfoVOS.add(interfaceInfoResult);
                 }
             }
         });
