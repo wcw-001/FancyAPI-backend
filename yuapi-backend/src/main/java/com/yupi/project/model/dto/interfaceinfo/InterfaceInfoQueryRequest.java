@@ -1,10 +1,12 @@
 package com.yupi.project.model.dto.interfaceinfo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.yupi.project.common.PageRequest;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * 查询请求
@@ -19,6 +21,10 @@ public class InterfaceInfoQueryRequest extends PageRequest implements Serializab
      * 主键
      */
     private Long id;
+    /**
+     * 搜索词
+     */
+    private String searchText;
 
     /**
      * 名称
@@ -63,5 +69,10 @@ public class InterfaceInfoQueryRequest extends PageRequest implements Serializab
      * 创建人
      */
     private Long userId;
+    /**
+     * 创建时间
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date createTime;
 
 }
