@@ -3,7 +3,9 @@ package com.yupi.project.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
+import com.yupi.project.annotation.AuthCheck;
 import com.yupi.project.common.*;
+import com.yupi.project.constant.UserConstant;
 import com.yupi.project.exception.BusinessException;
 import com.yupi.project.model.dto.user.*;
 import com.yupi.project.model.vo.UserVO;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -160,7 +163,8 @@ public class UserController {
         User user = new User();
         BeanUtils.copyProperties(userUpdateRequest, user);
         boolean result = userService.updateById(user);
-        return ResultUtils.success(result);
+        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        return ResultUtils.success(true);
     }
 
     /**
@@ -201,6 +205,25 @@ public class UserController {
             BeanUtils.copyProperties(user, userVO);
             return userVO;
         }).collect(Collectors.toList());
+        return ResultUtils.success(userVOList);
+    }
+    /**
+     * 获取用户列表（仅管理员）
+     *
+     * @param request
+     * @return
+     */
+    @GetMapping("/get_all")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<List<UserVO>> getUserByList(HttpServletRequest request) {
+        List<User> userList = userService.list();
+        ThrowUtils.throwIf(userList == null, ErrorCode.NOT_FOUND_ERROR);
+        List<UserVO> userVOList = new ArrayList<>();
+        for (User user : userList) {
+            UserVO userVO = new UserVO();
+            BeanUtils.copyProperties(user, userVO);
+            userVOList.add(userVO);
+        }
         return ResultUtils.success(userVOList);
     }
 
@@ -249,5 +272,6 @@ public class UserController {
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         return ResultUtils.success(true);
     }
+
     // endregion
 }
