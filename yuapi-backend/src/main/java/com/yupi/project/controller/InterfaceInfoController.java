@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 /**
  * 接口
  *
- * @author yupi
+ * @author wcw
  */
 @RestController
 @RequestMapping("/interfaceInfo")

@@ -160,7 +160,7 @@ public class WapiClient {
                 // map转Object
                 //Object paramsObject = BeanUtil.mapToBean(params, paramsType, true, CopyOptions.create());
                 log.info("map转Object params:{} paramsType:{}", params, paramsType);
-                    return method.invoke(this, params);
+                return method.invoke(this, params);
             }
         } catch (NoSuchMethodException e){
             throw new Exception("接口不存在");

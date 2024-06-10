@@ -1,6 +1,8 @@
 package com.wcw.wapigateway;
 
 import com.wcw.wapiclientsdk.utils.SignUtils;
+import com.wcw.wapigateway.exception.BusinessException;
+import com.yupi.project.yuapicommon.model.common.ErrorCode;
 import com.yupi.project.yuapicommon.model.entity.InterfaceInfo;
 import com.yupi.project.yuapicommon.model.entity.User;
 import com.yupi.project.yuapicommon.service.InnerInterfaceInfoMapper;
@@ -163,6 +165,7 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
                                             innerUserInterfaceInfoService.invokeCount(interfaceInfoId, userId);
                                         } catch (Exception e) {
                                             log.error("invokeCount error", e);
+                                            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "接口调用次数 + 1 失败！");
                                         }
                                         byte[] content = new byte[dataBuffer.readableByteCount()];
                                         dataBuffer.read(content);
