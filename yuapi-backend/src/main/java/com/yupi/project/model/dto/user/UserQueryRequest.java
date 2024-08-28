@@ -3,6 +3,7 @@ package com.yupi.project.model.dto.user;
 import com.yupi.project.common.PageRequest;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -48,6 +49,7 @@ public class UserQueryRequest extends PageRequest implements Serializable {
     /**
      * 创建时间
      */
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 
     /**

@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.yupi.project.common.ErrorCode;
 import com.yupi.project.exception.BusinessException;
+import com.yupi.project.manger.RedisLimiterManager;
 import com.yupi.project.mapper.UserInterfaceInfoMapper;
 import com.yupi.project.service.UserInterfaceInfoService;
 import com.yupi.project.yuapicommon.model.entity.UserInterfaceInfo;
@@ -24,6 +25,9 @@ public class UserInterfaceInfoServiceImpl extends ServiceImpl<UserInterfaceInfoM
     implements UserInterfaceInfoService {
     @Resource
     RedissonClient redissonClient;
+    @Resource
+    private RedisLimiterManager redisLimiterManager;
+
     @Override
     public void validUserInterfaceInfo(UserInterfaceInfo userInterfaceInfo, boolean add) {
         if (userInterfaceInfo == null) {
@@ -48,6 +52,7 @@ public class UserInterfaceInfoServiceImpl extends ServiceImpl<UserInterfaceInfoM
         invokeLambdaQueryWrapper.eq(UserInterfaceInfo::getInterfaceInfoId, interfaceInfoId);
         invokeLambdaQueryWrapper.eq(UserInterfaceInfo::getUserId, userId);
         UserInterfaceInfo userInterfaceInfo = this.getOne(invokeLambdaQueryWrapper);
+        redisLimiterManager.doRateLimit("invokeUser_"+userId);
         //只有一个线程能获取锁
         //RLock lock = redissonClient.getLock("yupao:join_team");
             //抢到锁并执行
@@ -60,7 +65,7 @@ public class UserInterfaceInfoServiceImpl extends ServiceImpl<UserInterfaceInfoM
                         userInterfaceInfo.setInterfaceInfoId(interfaceInfoId);
                         userInterfaceInfo.setUserId(userId);
                         userInterfaceInfo.setTotalNum(1);
-                        userInterfaceInfo.setLeftNum(9);
+                        userInterfaceInfo.setLeftNum(99);
                         invokeResult = this.save(userInterfaceInfo);
                     }else {
                         UpdateWrapper<UserInterfaceInfo> updateWrapper = new UpdateWrapper();
