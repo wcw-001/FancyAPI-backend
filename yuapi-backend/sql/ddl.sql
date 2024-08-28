@@ -21,25 +21,29 @@ create table if not exists user
         unique (userAccount)
 ) comment '用户';
 
--- 帖子表
-create table if not exists post
-(
-    id            bigint auto_increment comment 'id' primary key,
-    age           int comment '年龄',
-    gender        tinyint  default 0                 not null comment '性别（0-男, 1-女）',
-    education     varchar(512)                       null comment '学历',
-    place         varchar(512)                       null comment '地点',
-    job           varchar(512)                       null comment '职业',
-    contact       varchar(512)                       null comment '联系方式',
-    loveExp       varchar(512)                       null comment '感情经历',
-    content       text                               null comment '内容（个人介绍）',
-    photo         varchar(1024)                      null comment '照片地址',
-    reviewStatus  int      default 0                 not null comment '状态（0-待审核, 1-通过, 2-拒绝）',
-    reviewMessage varchar(512)                       null comment '审核信息',
-    viewNum       int                                not null default 0 comment '浏览数',
-    thumbNum      int                                not null default 0 comment '点赞数',
-    userId        bigint                             not null comment '创建用户 id',
-    createTime    datetime default CURRENT_TIMESTAMP not null comment '创建时间',
-    updateTime    datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
-    isDelete      tinyint  default 0                 not null comment '是否删除'
-) comment '帖子';
+-- ----------------------------
+DROP TABLE IF EXISTS `t_ai_intelligent`;
+CREATE TABLE `t_ai_intelligent`  (
+                                     `id` bigint(20) NOT NULL AUTO_INCREMENT,
+                                     `input_message` text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '用户输入信息',
+                                     `ai_result` text CHARACTER SET utf8 COLLATE utf8_general_ci NULL COMMENT 'AI生成结果',
+                                     `user_id` bigint(20) NULL DEFAULT NULL,
+                                     `create_time` datetime NULL DEFAULT NULL,
+                                     `update_time` datetime NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+                                     PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1736624313104711683 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Table structure for t_user_interface_info
+-- ----------------------------
+DROP TABLE IF EXISTS `t_user_interface_info`;
+CREATE TABLE `t_user_interface_info`  (
+                                          `id` bigint(20) NOT NULL AUTO_INCREMENT,
+                                          `user_id` bigint(20) NOT NULL COMMENT '用户id或管理员id',
+                                          `interface_id` bigint(20) NOT NULL COMMENT '1 表示AI聊天接口 2表示智能分析接口 ',
+                                          `total_num` int(11) NOT NULL DEFAULT 0 COMMENT '总共调用接口次数\r\n',
+                                          `left_num` int(11) NOT NULL DEFAULT 0 COMMENT '剩余接口可用次数',
+                                          `create_time` datetime NOT NULL COMMENT '创建时间',
+                                          `update_time` datetime NOT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                          PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = DYNAMIC;

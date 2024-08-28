@@ -4,7 +4,6 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/api.iml" filepath="$PROJECT_DIR$/.idea/api.iml" />
       <module fileurl="file://$PROJECT_DIR$/yuapi-backend/wapi-backend.iml" filepath="$PROJECT_DIR$/yuapi-backend/wapi-backend.iml" />
-      <module fileurl="file://$PROJECT_DIR$/wapi-client-sdk/wapi-client-sdk.iml" filepath="$PROJECT_DIR$/wapi-client-sdk/wapi-client-sdk.iml" />
       <module fileurl="file://$PROJECT_DIR$/wapi-common/wapi-common.iml" filepath="$PROJECT_DIR$/wapi-common/wapi-common.iml" />
       <module fileurl="file://$PROJECT_DIR$/wapi-gateway/wapi-gateway.iml" filepath="$PROJECT_DIR$/wapi-gateway/wapi-gateway.iml" />
       <module fileurl="file://$PROJECT_DIR$/yuapi-interface/yuapi-interface.iml" filepath="$PROJECT_DIR$/yuapi-interface/yuapi-interface.iml" />
