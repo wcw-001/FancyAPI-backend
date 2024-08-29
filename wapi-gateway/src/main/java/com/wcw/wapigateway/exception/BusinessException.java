@@ -1,7 +1,7 @@
 package com.wcw.wapigateway.exception;
 
 
-import com.yupi.project.yuapicommon.model.common.ErrorCode;
+import com.wcw.project.yuapicommon.model.common.ErrorCode;
 
 /**
  * 自定义异常类

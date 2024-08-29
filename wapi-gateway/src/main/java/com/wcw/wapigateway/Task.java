@@ -17,13 +17,6 @@
 
 package com.wcw.wapigateway;
 
-import com.yupi.project.provider.DemoService;
-import org.apache.dubbo.config.annotation.DubboReference;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.stereotype.Component;
-
-import java.util.Date;
-
 //@Component
 //public class Task implements CommandLineRunner {
 //    @DubboReference
