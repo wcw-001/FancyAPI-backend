@@ -24,13 +24,13 @@ create table if not exists user
 -- ----------------------------
 DROP TABLE IF EXISTS `t_ai_intelligent`;
 CREATE TABLE `t_ai_intelligent`  (
-                                     `id` bigint(20) NOT NULL AUTO_INCREMENT,
-                                     `input_message` text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '用户输入信息',
-                                     `ai_result` text CHARACTER SET utf8 COLLATE utf8_general_ci NULL COMMENT 'AI生成结果',
-                                     `user_id` bigint(20) NULL DEFAULT NULL,
-                                     `create_time` datetime NULL DEFAULT NULL,
-                                     `update_time` datetime NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-                                     PRIMARY KEY (`id`) USING BTREE
+ `id` bigint(20) NOT NULL AUTO_INCREMENT,
+ `inputMessage` text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '用户输入信息',
+ `aiResult` text CHARACTER SET utf8 COLLATE utf8_general_ci NULL COMMENT 'AI生成结果',
+ `userId` bigint(20) NULL DEFAULT NULL,
+ createTime   datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
+ updateTime   datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+ PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1736624313104711683 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------

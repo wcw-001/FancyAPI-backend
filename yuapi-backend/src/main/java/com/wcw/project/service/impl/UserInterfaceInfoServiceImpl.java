@@ -1,17 +1,27 @@
 package com.wcw.project.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wcw.project.common.ErrorCode;
 import com.wcw.project.exception.BusinessException;
 import com.wcw.project.manger.RedisLimiterManager;
 import com.wcw.project.mapper.UserInterfaceInfoMapper;
+import com.wcw.project.model.vo.InterfaceInfoVO;
+import com.wcw.project.service.InterfaceInfoService;
+import com.wcw.project.yuapicommon.model.entity.InterfaceInfo;
 import com.wcw.project.yuapicommon.model.entity.UserInterfaceInfo;
 import com.wcw.project.service.UserInterfaceInfoService;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 
 /**
 * @author wcw
@@ -25,6 +35,10 @@ public class UserInterfaceInfoServiceImpl extends ServiceImpl<UserInterfaceInfoM
     RedissonClient redissonClient;
     @Resource
     private RedisLimiterManager redisLimiterManager;
+    @Resource
+    private UserInterfaceInfoMapper userInterfaceInfoMapper;
+    @Resource
+    private InterfaceInfoService interfaceInfoService;
 
     @Override
     public void validUserInterfaceInfo(UserInterfaceInfo userInterfaceInfo, boolean add) {
@@ -83,6 +97,32 @@ public class UserInterfaceInfoServiceImpl extends ServiceImpl<UserInterfaceInfoM
 //            throw new RuntimeException(e);
 //        }
 //    }
+    public List<InterfaceInfoVO> listTopInvokeInterfaceInfo(){
+        List<InterfaceInfoVO> interfaceInfoList = userInterfaceInfoMapper.listTopInvokeInterfaceInfo(3);
+        if(CollectionUtils.isEmpty(interfaceInfoList)){
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR);
+        }
+        LinkedHashMap<Long, InterfaceInfoVO> voHashMap = new LinkedHashMap<>(interfaceInfoList.size());
+        for (InterfaceInfoVO userInterfaceInfoVO : interfaceInfoList ){
+            voHashMap.put(userInterfaceInfoVO.getId(),userInterfaceInfoVO);
+        }
+        QueryWrapper<InterfaceInfo> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in("id",voHashMap.keySet());
+        queryWrapper.eq("status",1);
+        List<InterfaceInfo> list = interfaceInfoService.list(queryWrapper);
+        InterfaceInfoVO interfaceVO = new InterfaceInfoVO();
+        List<InterfaceInfoVO> interfaceInfoVOS = new ArrayList<>();
+        voHashMap.values().forEach(interfaceInfoVO -> {
+            for(InterfaceInfo interfaceInfo : list){
+                if(interfaceInfo.getId().equals(interfaceInfoVO.getId())){
+                    InterfaceInfoVO interfaceInfoResult = BeanUtil.copyProperties(interfaceInfo, InterfaceInfoVO.class);
+                    interfaceInfoResult.setTotalNum(interfaceInfoVO.getTotalNum());
+                    interfaceInfoVOS.add(interfaceInfoResult);
+                }
+            }
+        });
+        return interfaceInfoVOS;
+    }
 
 }
 

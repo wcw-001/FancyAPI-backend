@@ -1,11 +1,15 @@
 package com.wcw.project.service.impl;
 
+import cn.hutool.core.util.ObjUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.wcw.project.common.IdRequest;
 import com.wcw.project.mapper.InterfaceInfoMapper;
+import com.wcw.project.model.dto.interfaceinfo.InterfaceInfoInvokeRequest;
 import com.wcw.project.model.dto.interfaceinfo.InterfaceInfoQueryRequest;
+import com.wcw.project.model.enums.InterfaceInfoEnum;
 import com.wcw.project.model.vo.InterfaceInfoVO;
 import com.wcw.project.service.UserService;
 import com.wcw.project.common.ErrorCode;
@@ -17,12 +21,18 @@ import com.wcw.project.util.SqlUtils;
 import com.wcw.project.yuapicommon.model.entity.InterfaceInfo;
 import com.wcw.project.yuapicommon.model.entity.User;
 import com.wcw.project.yuapicommon.model.entity.UserInterfaceInfo;
+import com.wcw.wapiclientsdk.client.WapiClient;
+import com.wcw.wapiclientsdk.model.dto.BaseRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -30,12 +40,15 @@ import java.util.stream.Collectors;
 
 
 @Service
+@Slf4j
 public class InterfaceInfoServiceImpl extends ServiceImpl<InterfaceInfoMapper, InterfaceInfo>
     implements InterfaceInfoService {
     @Resource
     UserService userService;
     @Resource
     UserInterfaceInfoService userInterfaceInfoService;
+    @Resource
+    private WapiClient wapiClient;
     @Override
     public void validInterfaceInfo(InterfaceInfo interfaceInfo, boolean add) {
         if (interfaceInfo == null) {
@@ -125,6 +138,136 @@ public class InterfaceInfoServiceImpl extends ServiceImpl<InterfaceInfoMapper, I
 
         interfaceInfoVOPage.setRecords(interfaceInfoVOList);
         return interfaceInfoVOPage;
+    }
+
+    @Override
+    public Page<InterfaceInfo> listInterfaceInfoByPage(InterfaceInfoQueryRequest interfaceInfoQueryRequest, HttpServletRequest request) {
+        InterfaceInfo interfaceInfoQuery = new InterfaceInfo();
+        BeanUtils.copyProperties(interfaceInfoQueryRequest, interfaceInfoQuery);
+        long current = interfaceInfoQueryRequest.getCurrent();
+        long size = interfaceInfoQueryRequest.getPageSize();
+        String sortField = interfaceInfoQueryRequest.getSortField();
+        String sortOrder = interfaceInfoQueryRequest.getSortOrder();
+        String description = interfaceInfoQuery.getDescription();
+        // description 需支持模糊搜索
+        interfaceInfoQuery.setDescription(null);
+        // 限制爬虫
+        if (size > 50) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        QueryWrapper<InterfaceInfo> queryWrapper = new QueryWrapper<>(interfaceInfoQuery);
+        queryWrapper.like(StringUtils.isNotBlank(description), "description", description);
+        queryWrapper.orderBy(StringUtils.isNotBlank(sortField),
+                sortOrder.equals(CommonConstant.SORT_ORDER_ASC), sortField);
+        Page<InterfaceInfo> interfaceInfoPage = this.page(new Page<>(current, size), queryWrapper);
+        return interfaceInfoPage;
+    }
+
+    @Override
+    public Object invokeInterfaceInfo(InterfaceInfoInvokeRequest interfaceInfoInvokeRequest, HttpServletRequest request) {
+        if(interfaceInfoInvokeRequest == null || interfaceInfoInvokeRequest.getId() <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        long id = interfaceInfoInvokeRequest.getId();
+        // 判断是否存在
+        InterfaceInfo oldInterfaceInfo = this.getById(id);
+        if (oldInterfaceInfo == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        if(oldInterfaceInfo.getStatus() != InterfaceInfoEnum.FEMALE.getValue()){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"接口已关闭");
+        }
+        User loginUser = userService.getLoginUser(request);
+        String accessKey = loginUser.getAccessKey();
+        String secretKey = loginUser.getSecretKey();
+        WapiClient wapiClient = new WapiClient(accessKey,secretKey);
+        URL url = null;
+        try {
+            url = new URL(oldInterfaceInfo.getUrl());
+        } catch (MalformedURLException e) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "无效的地址转换");
+        }
+        String params = interfaceInfoInvokeRequest.getUserRequestParams();
+        String path = url.getPath();
+        BaseRequest baseRequest = new BaseRequest();
+        baseRequest.setPath(path);
+        baseRequest.setMethod(oldInterfaceInfo.getMethod());
+        baseRequest.setRequestParams(params);
+        baseRequest.setUserRequest(request);
+        Object result = null;
+        try {
+            // 调用sdk解析地址方法
+            result = wapiClient.parseAddressAndCallInterface(baseRequest);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (ObjUtil.isEmpty(request)) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "请求SDK失败");
+        }
+        return result;
+    }
+
+    @Override
+    public Boolean offlineInterfaceInfo(IdRequest idRequest, HttpServletRequest request) {
+        if(idRequest == null || idRequest.getId() <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        long id = idRequest.getId();
+        // 判断是否存在
+        InterfaceInfo oldInterfaceInfo = this.getById(id);
+        if (oldInterfaceInfo == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        //仅管理员或者本人可以修改
+        InterfaceInfo interfaceInfo = new InterfaceInfo();
+        interfaceInfo.setId(id);
+        interfaceInfo.setStatus(InterfaceInfoEnum.MALE.getValue());
+        boolean result = this.updateById(interfaceInfo);
+        return result;
+    }
+
+    @Override
+    public Boolean onlineInterfaceInfo(IdRequest idRequest, HttpServletRequest request) {
+        if (idRequest == null || idRequest.getId() <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        long id = idRequest.getId();
+        // 判断是否存在
+        InterfaceInfo oldInterfaceInfo = this.getById(id);
+        if (oldInterfaceInfo == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        //判断该接口是否可以调用
+        URL url = null;
+        try {
+            url = new URL(oldInterfaceInfo.getUrl());
+        } catch (MalformedURLException e) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "无效的地址转换");
+        }
+        String params = null;
+        String path = url.getPath();
+        BaseRequest baseRequest = new BaseRequest();
+        baseRequest.setPath(path);
+        baseRequest.setMethod(oldInterfaceInfo.getMethod());
+        baseRequest.setRequestParams(params);
+        baseRequest.setUserRequest(request);
+        Object clientResult = null;
+        try {
+            // 调用sdk解析地址方法
+            clientResult = wapiClient.parseAddressAndCallInterface(baseRequest);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (ObjUtil.isEmpty(request)) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "请求SDK失败");
+        }
+        log.info("调用api接口返回结果：" + clientResult);
+        //仅管理员或者本人可以修改
+        InterfaceInfo interfaceInfo = new InterfaceInfo();
+        interfaceInfo.setId(id);
+        interfaceInfo.setStatus(InterfaceInfoEnum.FEMALE.getValue());
+        boolean result = this.updateById(interfaceInfo);
+        return result;
     }
 
 }

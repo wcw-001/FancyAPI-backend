@@ -94,13 +94,14 @@ public class AiIntelligentServiceImpl extends ServiceImpl<AiIntelligentMapper, A
         List<InterfaceInfo> list = interfaceInfoService.list();
         StringBuilder stringBuilder = new StringBuilder();
         HashSet<String> hashSet = new HashSet<>();
-        String presetInformation = "请根据数据库内容作出推荐,API接口优先选择数据库里面有的，如果用户喜欢的API接口，数据库没有，你可能根据自身的知识去推荐，可以是一个也可以是多个接口，但不可以超过三接口，根据游客喜欢的信息作出推荐。如果用户问的问题与API接口推荐无关，请拒绝回答！";
+        String presetInformation = "请根据数据库内容与接口描述作出推荐,API接口优先选择数据库里面有的，如果用户喜欢的API接口，数据库没有，你可能根据自身的知识去推荐，可以是一个也可以是多个接口，但不可以超过三接口，根据用户喜欢的信息作出推荐，输出内容为。如果用户问的问题与API接口推荐无关，请拒绝回答！";
 
         stringBuilder.append(presetInformation).append("\n").append("数据库内容: ");
         for (InterfaceInfo interfaceInfo : list) {
             if (!hashSet.contains(interfaceInfo.getName())) {
                 hashSet.add(interfaceInfo.getName());
                 stringBuilder.append(interfaceInfo.getName()).append(",");
+                stringBuilder.append("\n").append("接口描述：").append(interfaceInfo.getDescription()).append("\n");
             }
         }
         stringBuilder.append("\n");

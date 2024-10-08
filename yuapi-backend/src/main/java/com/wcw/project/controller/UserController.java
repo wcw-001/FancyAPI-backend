@@ -277,14 +277,25 @@ public class UserController {
     }
 
     // endregion
+
     /**
-     * 调用AI模型，获取数据库中有的，并且推荐图书给用户
-     * @param aiIntelligent AI实体类
-     * @return R<String>
+     * 调用AI模型，获取数据库中有的，并且推荐接口给用户
+     * @param aiIntelligent
+     * @return
      */
     @PostMapping("ai_intelligent")
-    @ApiOperation("推荐图书")
+    @ApiOperation("推荐接口")
     public BaseResponse<String> aiRecommend(@RequestBody AiIntelligent aiIntelligent){
         return aiIntelligentService.getGenResult(aiIntelligent);
+    }
+    /**
+     * 根据用户ID 获取该用户和AI聊天的最近的五条消息
+     * @param userId 用户id
+     * @return R<List<AiIntelligent>>
+     */
+    @GetMapping("ai_list_information/{userId}")
+    @ApiOperation("获取该用户和AI聊天的最近的五条消息")
+    public BaseResponse<List<AiIntelligent>> getAiInformationByUserId(@PathVariable("userId") Long userId) {
+        return aiIntelligentService.getAiInformationByUserId(userId);
     }
 }

@@ -47,8 +47,6 @@ public class InterfaceInfoController {
 
     @Resource
     private UserService userService;
-    @Resource
-    private WapiClient wapiClient;
 
     // region 增删改查
 
@@ -182,24 +180,7 @@ public class InterfaceInfoController {
         if (interfaceInfoQueryRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        InterfaceInfo interfaceInfoQuery = new InterfaceInfo();
-        BeanUtils.copyProperties(interfaceInfoQueryRequest, interfaceInfoQuery);
-        long current = interfaceInfoQueryRequest.getCurrent();
-        long size = interfaceInfoQueryRequest.getPageSize();
-        String sortField = interfaceInfoQueryRequest.getSortField();
-        String sortOrder = interfaceInfoQueryRequest.getSortOrder();
-        String description = interfaceInfoQuery.getDescription();
-        // description 需支持模糊搜索
-        interfaceInfoQuery.setDescription(null);
-        // 限制爬虫
-        if (size > 50) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        QueryWrapper<InterfaceInfo> queryWrapper = new QueryWrapper<>(interfaceInfoQuery);
-        queryWrapper.like(StringUtils.isNotBlank(description), "description", description);
-        queryWrapper.orderBy(StringUtils.isNotBlank(sortField),
-                sortOrder.equals(CommonConstant.SORT_ORDER_ASC), sortField);
-        Page<InterfaceInfo> interfaceInfoPage = interfaceInfoService.page(new Page<>(current, size), queryWrapper);
+        Page<InterfaceInfo> interfaceInfoPage = interfaceInfoService.listInterfaceInfoByPage(interfaceInfoQueryRequest, request);
         return ResultUtils.success(interfaceInfoPage);
     }
     /**
@@ -270,45 +251,7 @@ public class InterfaceInfoController {
     @AuthCheck(mustRole = "admin")
     public BaseResponse<Boolean> onlineInterfaceInfo(@RequestBody IdRequest idRequest,
                                                      HttpServletRequest request) {
-        if (idRequest == null || idRequest.getId() <= 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        long id = idRequest.getId();
-        // 判断是否存在
-        InterfaceInfo oldInterfaceInfo = interfaceInfoService.getById(id);
-        if (oldInterfaceInfo == null) {
-            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
-        }
-        //判断该接口是否可以调用
-        URL url = null;
-        try {
-            url = new URL(oldInterfaceInfo.getUrl());
-        } catch (MalformedURLException e) {
-            throw new BusinessException(ErrorCode.OPERATION_ERROR, "无效的地址转换");
-        }
-        String params = null;
-        String path = url.getPath();
-        BaseRequest baseRequest = new BaseRequest();
-        baseRequest.setPath(path);
-        baseRequest.setMethod(oldInterfaceInfo.getMethod());
-        baseRequest.setRequestParams(params);
-        baseRequest.setUserRequest(request);
-        Object clientResult = null;
-        try {
-            // 调用sdk解析地址方法
-            clientResult = wapiClient.parseAddressAndCallInterface(baseRequest);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        if (ObjUtil.isEmpty(request)) {
-            throw new BusinessException(ErrorCode.OPERATION_ERROR, "请求SDK失败");
-        }
-        log.info("调用api接口返回结果：" + clientResult);
-        //仅管理员或者本人可以修改
-        InterfaceInfo interfaceInfo = new InterfaceInfo();
-        interfaceInfo.setId(id);
-        interfaceInfo.setStatus(InterfaceInfoEnum.FEMALE.getValue());
-        boolean result = interfaceInfoService.updateById(interfaceInfo);
+        Boolean result = interfaceInfoService.onlineInterfaceInfo(idRequest, request);
         return ResultUtils.success(result);
     }
     /**
@@ -322,20 +265,7 @@ public class InterfaceInfoController {
     @AuthCheck(mustRole = "admin")
     public BaseResponse<Boolean> offlineInterfaceInfo(@RequestBody IdRequest idRequest,
                                                      HttpServletRequest request) {
-        if(idRequest == null || idRequest.getId() <= 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        long id = idRequest.getId();
-        // 判断是否存在
-        InterfaceInfo oldInterfaceInfo = interfaceInfoService.getById(id);
-        if (oldInterfaceInfo == null) {
-            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
-        }
-        //仅管理员或者本人可以修改
-        InterfaceInfo interfaceInfo = new InterfaceInfo();
-        interfaceInfo.setId(id);
-        interfaceInfo.setStatus(InterfaceInfoEnum.MALE.getValue());
-        boolean result = interfaceInfoService.updateById(interfaceInfo);
+        Boolean result = interfaceInfoService.offlineInterfaceInfo(idRequest, request);
         return ResultUtils.success(result);
     }
     /**
@@ -381,45 +311,7 @@ public class InterfaceInfoController {
     @PostMapping("/invoke")
     public BaseResponse<Object> invokeInterfaceInfo(@RequestBody InterfaceInfoInvokeRequest interfaceInfoInvokeRequest,
                                                                  HttpServletRequest request) {
-        if(interfaceInfoInvokeRequest == null || interfaceInfoInvokeRequest.getId() <= 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        long id = interfaceInfoInvokeRequest.getId();
-        // 判断是否存在
-        InterfaceInfo oldInterfaceInfo = interfaceInfoService.getById(id);
-        if (oldInterfaceInfo == null) {
-            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
-        }
-        if(oldInterfaceInfo.getStatus() != InterfaceInfoEnum.FEMALE.getValue()){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR,"接口已关闭");
-        }
-        User loginUser = userService.getLoginUser(request);
-        String accessKey = loginUser.getAccessKey();
-        String secretKey = loginUser.getSecretKey();
-        WapiClient wapiClient = new WapiClient(accessKey,secretKey);
-        URL url = null;
-        try {
-            url = new URL(oldInterfaceInfo.getUrl());
-        } catch (MalformedURLException e) {
-            throw new BusinessException(ErrorCode.OPERATION_ERROR, "无效的地址转换");
-        }
-        String params = interfaceInfoInvokeRequest.getUserRequestParams();
-        String path = url.getPath();
-        BaseRequest baseRequest = new BaseRequest();
-        baseRequest.setPath(path);
-        baseRequest.setMethod(oldInterfaceInfo.getMethod());
-        baseRequest.setRequestParams(params);
-        baseRequest.setUserRequest(request);
-        Object result = null;
-        try {
-            // 调用sdk解析地址方法
-            result = wapiClient.parseAddressAndCallInterface(baseRequest);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        if (ObjUtil.isEmpty(request)) {
-            throw new BusinessException(ErrorCode.OPERATION_ERROR, "请求SDK失败");
-        }
+        Object result = interfaceInfoService.invokeInterfaceInfo(interfaceInfoInvokeRequest, request);
         log.info("调用api接口返回结果：" + result);
         // 重构用户缓存
         return ResultUtils.success(result);

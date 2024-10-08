@@ -1,7 +1,10 @@
 package com.wcw.project.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.wcw.project.model.vo.InterfaceInfoVO;
 import com.wcw.project.yuapicommon.model.entity.UserInterfaceInfo;
+
+import java.util.List;
 
 
 /**
@@ -19,4 +22,6 @@ public interface UserInterfaceInfoService extends IService<UserInterfaceInfo> {
      * @return
      */
     boolean invokeCount(long interfaceInfoId, long userId);
+
+    List<InterfaceInfoVO> listTopInvokeInterfaceInfo();
 }

@@ -67,7 +67,7 @@ public class UserInterfaceInfoController {
         User loginUser = userService.getLoginUser(request);
         userInterfaceInfo.setUserId(loginUser.getId());
         boolean result = userInterfaceInfoService.save(userInterfaceInfo);
-        if (!result) {
+        if ( !result ) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR);
         }
         long newUserInterfaceInfoId = userInterfaceInfo.getId();
